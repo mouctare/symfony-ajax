@@ -8,6 +8,9 @@ namespace App\Controller;
 
 use App\Entity\Post;
 
+use App\Entity\User;
+use App\Repository\UserRepository;
+
 use App\Repository\PostLikeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -38,8 +41,40 @@ class PostController extends AbstractController
     public function like(Post $post, EntityManagerInterface $manager,PostLikeRepository $likeRepo ) :  Response 
    
     {
+        $user = $this->getUser();
+
+        if(!$user) return $this->json([
+            'code' => 403 ,
+            'message' => "Unauthorized"
+        ], 403);
+
+        if($post->isLikedByUser($user)) {
+            // sil user a déjà liker , donc on va essaye de le trouver
+            $like = $likeRepo->findOneBy([
+                'post' => $post,
+                'user' => $user
+
+            ]);
+            $manager->remove($like);
+            $manager->flush();
+            return $this->json([
+                'code' => 200,
+                'message' => 'Like bien supprimé',
+                'likes' => $likeRepo->count(['post' => $post])
+
+
+            ], 200);
+
+        }
+
+        $like = new PostLike();
+        $like->setPost($post)
+            ->setUser($user);
+            $manager->persist($like);
+            $manager->flush();
+
         return $this->json([ 'code' => 200, 
-        'message' => 'Votre avez bien liké cet article',
+        'message' => 'Like bien ajouté',
         'like' => $likeRepo->count(['post' => $post])
     
     
