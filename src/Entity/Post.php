@@ -110,18 +110,7 @@ class Post
       
      */
 
-    public function removeLike(PostLike $like): self
-    {
-        if ($this->likes->contains($like)) {
-            $this->likes->removeElement($like);
-            // set the owning side to null (unless already changed)
-            if ($like->getPost() === $this) {
-                $like->setPost(null);
-            }
-        }
-
-        return $this;
-    }
+    
     public function isLikedByUser(User $user) : bool{
         // parmi tous les likes qui est un like
 
